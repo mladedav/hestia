@@ -1,0 +1,9 @@
+/target
+/migrations
+/pictures
+hestia.db
+Dockerfile
+LICENSE
+.gitignore
+.git
+.env
