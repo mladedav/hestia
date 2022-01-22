@@ -12,6 +12,11 @@ use actix_web::error::InternalError;
 use actix_web::web::Data;
 use actix_web::{web, App, HttpServer, HttpResponse, guard};
 
+#[cfg(debug_assertions)]
+const ADDRESS: &str = "127.0.0.1:8080";
+#[cfg(not(debug_assertions))]
+const ADDRESS: &str = "0.0.0.0:8080";
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(||
@@ -38,7 +43,7 @@ async fn main() -> std::io::Result<()> {
                 )
                 .configure(appconfig::config_app)
         )
-        .bind("127.0.0.1:8080")?
+        .bind(ADDRESS)?
         .run()
         .await
 }
