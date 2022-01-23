@@ -29,9 +29,16 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push
-        id: docker_build
+      - name: Build and push app
+        id: docker_app_build
         uses: docker/build-push-action@v2
         with:
           push: true
           tags: mladedav/hestia:latest
+      - name: Build and push init
+        id: docker_init_build
+        uses: docker/build-push-action@v2
+        with:
+          file: Dockerfile.init
+          push: true
+          tags: mladedav/hestia-init:latest
