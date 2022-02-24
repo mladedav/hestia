@@ -9,19 +9,29 @@ edition = "2021"
 actix-files = "0.5.0"
 actix-web = "3.3.3"
 actix-web-httpauth = "0.5.1"
+actix-codec = "0.5.0"
+
 awmp = "0.7.0"
 # diesel = { version = "1.4.8", features = ["sqlite"] }
 diesel = { branch = "master", features = ["sqlite", "returning_clauses_for_sqlite_3_35"], git = "https://github.com/diesel-rs/diesel" }
 dotenv = "0.15.0"
 handlebars = { version = "4.2.1", features = ["dir_source"] }
-# jsonwebtoken = "7.2.0"
-jsonwebtoken = { branch = "next", git = "https://github.com/Keats/jsonwebtoken" }
+jsonwebtoken = "8.0.1"
 libsqlite3-sys = { version = "0.23.2", features = ["bundled"] }
 reqwest = { version = "0.11.9", features = ["blocking", "json"] }
-serde = "1.0.133"
-serde_json = "1.0.75"
-serde_with = "1.11.0"
-strum = "0.23.0"
-strum_macros = "0.23.1"
+serde = "1.0.136"
+serde_json = "1.0.79"
+serde_with = "1.12.0"
+strum = "0.24.0"
+strum_macros = "0.24.0"
+tokio = { version = "1.17.0", features = ["macros", "rt-multi-thread", "time"] }
 
-[features]
+[dev-dependencies]
+async-trait = "0.1.52"
+cucumber = "0.12.0"
+scraper = "0.12.0"
+reqwest = { version = "0.11.9", features = ["multipart"] }
+
+[[test]]
+name = "cucumber" # this should be the same as the filename of your test target
+harness = false  # allows Cucumber to print output instead of libtest
