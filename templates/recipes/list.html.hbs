@@ -45,7 +45,7 @@
 				<div class="col-md-7">
 					<div class="card-block">
 						<h2 class="card-title"><a href="recipes/{{id}}">{{title}}</a></h2>
-						<h4 class="card-text">{{excerpt content 250}}</h4>
+						<h4 class="card-text">{{#if content}}{{excerpt content 250}}{{/if}}</h4>
 						<br>
 						<div class="wrapfooter">
 							<span class="meta-footer-thumb">
