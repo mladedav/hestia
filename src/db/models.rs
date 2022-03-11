@@ -9,7 +9,7 @@ pub struct User {
     pub password_hash: Vec<u8>,
 }
 
-#[derive(Debug, Queryable, Identifiable, AsChangeset, Serialize)]
+#[derive(Debug, Queryable, Insertable, Identifiable, AsChangeset, Serialize, Deserialize)]
 pub struct Recipe {
     pub id: i32,
     pub title: String,

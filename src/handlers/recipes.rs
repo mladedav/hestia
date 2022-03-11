@@ -61,6 +61,48 @@ pub async fn add_form(tmpl: web::Data<Handlebars<'static>>) -> Result<HttpRespon
     Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(html))
 }
 
+pub async fn edit_recipe(req: HttpRequest, tmpl: web::Data<Handlebars<'static>>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, Error> {
+    let mut conn = establish_connection();
+    let recipe = match recipes::table.find(id).first::<Recipe>(&mut conn) {
+        Ok(recipe) => recipe,
+        Err(diesel::result::Error::NotFound) => return super::default::p404(req).await,
+        Err(e) => panic!("Unexpected error: {}", e),
+    };
+
+    let mut data = BTreeMap::new();
+    let recipe = serde_json::value::to_value(recipe).unwrap();
+    for (key, value) in recipe.as_object().unwrap() {
+        data.insert(key.as_str(), value.to_owned());
+    }
+
+    let html = tmpl.render("recipes/edit", &data).unwrap();
+
+    Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(html))
+}
+
+pub async fn update_recipe_multipart(mut parts: awmp::Parts, web::Path(id): web::Path<i32>) -> Result<HttpResponse, Error> {
+    let qs = parts.texts.to_query_string();
+    let mut recipe = web::Query::<Recipe>::from_query(&qs).unwrap().into_inner();
+    // In case someone tries to update something they should not
+    recipe.id = id;
+
+    recipe.picture = parts
+        .files
+        .take("picture")
+        .pop()
+        .and_then(|f| f.persist_in("./pictures/").ok())
+        .map(|p| p.to_str().unwrap().to_string());
+
+    let mut conn = establish_connection();
+    let recipe: Recipe = diesel::replace_into(recipes::table)
+        .values(&recipe)
+        .get_result(&mut conn)
+        .expect("Error saving new recipe");
+
+    let location = format!("/recipes/{}", recipe.id);
+    Ok(HttpResponse::SeeOther().header(header::LOCATION, location).finish())
+}
+
 pub async fn add_recipe_url_encoded(web::Form(recipe): web::Form<NewRecipe>) -> Result<HttpResponse, Error> {
     let mut conn = establish_connection();
     let recipe: Recipe = diesel::insert_into(recipes::table)
@@ -76,8 +118,6 @@ pub async fn add_recipe_multipart(mut parts: awmp::Parts) -> Result<HttpResponse
     let qs = parts.texts.to_query_string();
     let mut recipe = web::Query::<NewRecipe>::from_query(&qs).unwrap().into_inner();
 
-    println!("{:?}", recipe);
-
     recipe.picture = parts
         .files
         .take("picture")
@@ -90,8 +130,6 @@ pub async fn add_recipe_multipart(mut parts: awmp::Parts) -> Result<HttpResponse
         .values(&recipe)
         .get_result(&mut conn)
         .expect("Error saving new recipe");
-
-    println!("{:?}", recipe);
 
     let location = format!("/recipes/{}", recipe.id);
     Ok(HttpResponse::SeeOther().header(header::LOCATION, location).finish())

@@ -26,6 +26,7 @@ pub fn config_app(cfg: &mut web::ServiceConfig) {
                 web::scope("/recipes")
                     .route("", web::get().to(recipes::list_recipes))
                     .route("/add", web::get().to(recipes::add_form))
+                    .route("/edit/{recipe_id}", web::get().to(recipes::edit_recipe))
                     .route("",
                         web::post()
                             .guard(guard::Header("content-type", "application/x-www-form-urlencoded"))
@@ -47,6 +48,7 @@ pub fn config_app(cfg: &mut web::ServiceConfig) {
                             .to(recipes::add_recipe_json),
                     )
                     .route("/{recipe_id}", web::get().to(recipes::get_recipe))
+                    .route("/{recipe_id}", web::post().to(recipes::update_recipe_multipart))
                     .route("/{recipe_id}", web::delete().to(recipes::remove_recipe))
             )
     );
