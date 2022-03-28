@@ -1,6 +1,7 @@
 use actix_web::{web, guard};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use handlebars::{Handlebars, handlebars_helper};
+use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{handlers::{recipes, users, default}, authorization};
 
@@ -63,7 +64,7 @@ pub fn handlebars() -> Handlebars<'static> {
     handlebars.register_helper("sub", Box::new(sub));
     handlebars_helper!(excerpt: |text: String, length: usize| {
         if length < text.len() {
-            format!("{}...", &text[..length])
+            format!("{}...", text.graphemes(true).collect::<String>())
         } else {
             text
         }

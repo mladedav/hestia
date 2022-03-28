@@ -38,7 +38,6 @@ pub async fn get_recipe(req: HttpRequest, tmpl: web::Data<Handlebars<'static>>, 
     data.insert("ingredients", serde_json::value::to_value(ingredients).unwrap());
     data.insert("content", serde_json::value::to_value(content).unwrap());
     
-
     let html = tmpl.render("recipes/detail", &data).unwrap();
 
     Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(html))
