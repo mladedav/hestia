@@ -1,0 +1,1 @@
+-- SQLite cannot alter or remove columns.

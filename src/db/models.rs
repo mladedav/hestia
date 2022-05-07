@@ -1,4 +1,6 @@
+use rocket::{FromForm, fs::TempFile};
 use serde::{Deserialize, Serialize, Deserializer};
+use uuid::Uuid;
 
 use super::schema::*;
 
@@ -9,8 +11,10 @@ pub struct User {
     pub password_hash: Vec<u8>,
 }
 
+// #[derive(Debug, Queryable, Identifiable, Serialize, Deserialize)]
 #[derive(Debug, Queryable, Insertable, Identifiable, AsChangeset, Serialize, Deserialize)]
-pub struct Recipe {
+#[diesel(table_name = super::schema::recipes)]
+pub struct RecipeDb {
     pub id: i32,
     pub title: String,
     pub content: Option<String>,
@@ -20,11 +24,75 @@ pub struct Recipe {
     pub preparation_minutes: Option<i32>,
     pub stars: i32,
     pub class: Option<String>,
+    pub tags: Option<String>,
+}
+
+#[derive(FromForm)]
+pub struct RecipeForm<'a> {
+    pub title: String,
+    pub content: Option<String>,
+    pub ingredients: Option<String>,
+    pub tips: Option<String>,
+    pub picture: Option<TempFile<'a>>,
+    pub preparation_minutes: Option<i32>,
+    pub stars: i32,
+    pub class: Option<String>,
+    pub tags: Option<String>,
+}
+
+impl<'a> RecipeForm<'a> {
+    pub async fn into_new_db(&mut self) -> NewRecipeDb {
+        let picture = self.persist_picture().await;
+
+        NewRecipeDb {
+            title: self.title.clone(),
+            content: self.content.clone(),
+            ingredients: self.ingredients.clone(),
+            tips: self.tips.clone(),
+            picture,
+            preparation_minutes: self.preparation_minutes,
+            stars: self.stars,
+            class: self.class.clone(),
+            tags: self.tags.clone(),
+        }
+    }
+
+    pub async fn into_db(&mut self, id: i32) -> RecipeDb {
+        log::info!("Picture: {:?}", self.picture);
+        let picture = self.persist_picture().await;
+
+        RecipeDb {
+            id,
+            title: self.title.clone(),
+            content: self.content.clone(),
+            ingredients: self.ingredients.clone(),
+            tips: self.tips.clone(),
+            picture,
+            preparation_minutes: self.preparation_minutes,
+            stars: self.stars,
+            class: self.class.clone(),
+            tags: self.tags.clone(),
+        }
+    }
+
+    async fn persist_picture(&mut self) -> Option<String> {
+        match &mut self.picture {
+            None => None,
+            Some(file) => {
+                log::info!("Persisting picture");
+                let extension = file.content_type().unwrap().extension().map_or("unknown", |x| x.as_str());
+                let name = format!("{}.{}", Uuid::new_v4(), extension);
+                let res = file.persist_to(format!("./pictures/{}", name)).await;
+                log::info!("Picture persistence result: {:?}", res);
+                Some(name)
+            }
+        }
+    }
 }
 
 #[derive(Insertable, Deserialize, Debug)]
 #[diesel(table_name = recipes)]
-pub struct NewRecipe {
+pub struct NewRecipeDb {
     pub title: String,
     pub content: Option<String>,
     pub ingredients: Option<String>,
@@ -35,6 +103,7 @@ pub struct NewRecipe {
     #[serde(deserialize_with="deserialize_or_default")]
     pub stars: i32,
     pub class: Option<String>,
+    pub tags: Option<String>,
 }
 
 fn deserialize_or_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>

@@ -1,6 +1,6 @@
-use hestia::start;
+use hestia::build;
 
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    start()?.await
+#[rocket::main]
+async fn main() -> Result<(), rocket::Error> {
+    build().await?.launch().await
 }

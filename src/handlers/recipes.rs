@@ -1,14 +1,15 @@
 use std::collections::BTreeMap;
 use std::env;
 
-use actix_web::http::header;
-use actix_web::{web, Error, HttpResponse, HttpRequest};
-
 use diesel::prelude::*;
 use dotenv::dotenv;
 use handlebars::Handlebars;
+use rocket::form::Form;
+use rocket::response::Redirect;
+use rocket::response::content::{self, Html};
+use rocket::{get, State, post, uri};
 
-use crate::db::models::{NewRecipe, Recipe};
+use crate::db::models::{NewRecipeDb, RecipeDb, RecipeForm};
 use crate::db::schema::recipes;
 
 pub fn establish_connection() -> SqliteConnection {
@@ -19,11 +20,12 @@ pub fn establish_connection() -> SqliteConnection {
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
 
-pub async fn get_recipe(req: HttpRequest, tmpl: web::Data<Handlebars<'static>>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, Error> {
+#[get("/<id>")]
+pub async fn get(id: i32, tmpl: &State<Handlebars<'static>>) -> Option<Html<String>> {
     let mut conn = establish_connection();
-    let recipe = match recipes::table.find(id).first::<Recipe>(&mut conn) {
+    let recipe = match recipes::table.find(id).first::<RecipeDb>(&mut conn) {
         Ok(recipe) => recipe,
-        Err(diesel::result::Error::NotFound) => return super::default::p404(req).await,
+        Err(diesel::result::Error::NotFound) => return None,
         Err(e) => panic!("Unexpected error: {}", e),
     };
 
@@ -40,31 +42,34 @@ pub async fn get_recipe(req: HttpRequest, tmpl: web::Data<Handlebars<'static>>, 
     
     let html = tmpl.render("recipes/detail", &data).unwrap();
 
-    Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(html))
+    Some(Html(html))
 }
 
-pub async fn list_recipes(tmpl: web::Data<Handlebars<'static>>) -> Result<HttpResponse, Error> {
+#[get("/")]
+pub async fn list(tmpl: &State<Handlebars<'static>>) -> Html<String> {
     let mut conn = establish_connection();
-    let recipes = recipes::table.limit(10).load::<Recipe>(&mut conn).expect("Error loading recipes");
+    let recipes = recipes::table.limit(10).load::<RecipeDb>(&mut conn).expect("Error loading recipes");
 
     let mut data = BTreeMap::new();
     data.insert("recipes", recipes);
     let html = tmpl.render("recipes/list", &data).unwrap();
 
-    Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(html))
+    Html(html)
 }
 
-pub async fn add_form(tmpl: web::Data<Handlebars<'static>>) -> Result<HttpResponse, Error> {
+#[get("/add")]
+pub async fn add(tmpl: &State<Handlebars<'static>>) -> Html<String> {
     let html = tmpl.render("recipes/add", &()).unwrap();
 
-    Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(html))
+    Html(html)
 }
 
-pub async fn edit_recipe(req: HttpRequest, tmpl: web::Data<Handlebars<'static>>, web::Path(id): web::Path<i32>) -> Result<HttpResponse, Error> {
+#[get("/edit/<id>")]
+pub async fn edit(id: i32, tmpl: &State<Handlebars<'static>>) -> Option<Html<String>> {
     let mut conn = establish_connection();
-    let recipe = match recipes::table.find(id).first::<Recipe>(&mut conn) {
+    let recipe = match recipes::table.find(id).first::<RecipeDb>(&mut conn) {
         Ok(recipe) => recipe,
-        Err(diesel::result::Error::NotFound) => return super::default::p404(req).await,
+        Err(diesel::result::Error::NotFound) => return None,
         Err(e) => panic!("Unexpected error: {}", e),
     };
 
@@ -76,78 +81,60 @@ pub async fn edit_recipe(req: HttpRequest, tmpl: web::Data<Handlebars<'static>>,
 
     let html = tmpl.render("recipes/edit", &data).unwrap();
 
-    Ok(HttpResponse::Ok().content_type("text/html; charset=utf-8").body(html))
+    Some(Html(html))
 }
 
-pub async fn update_recipe_multipart(mut parts: awmp::Parts, web::Path(id): web::Path<i32>) -> Result<HttpResponse, Error> {
-    let qs = parts.texts.to_query_string();
-    let mut recipe = web::Query::<Recipe>::from_query(&qs).unwrap().into_inner();
-    // In case someone tries to update something they should not
-    recipe.id = id;
-
-    recipe.picture = parts
-        .files
-        .take("picture")
-        .pop()
-        .and_then(|f| f.persist_in("./pictures/").ok())
-        .map(|p| p.to_str().unwrap().to_string());
+#[post("/<id>", data = "<recipe>")]
+pub async fn update<'a>(id: i32, mut recipe: Form<RecipeForm<'a>>) -> Redirect {
+    let recipe = recipe.into_db(id).await;
 
     let mut conn = establish_connection();
-    let recipe: Recipe = diesel::replace_into(recipes::table)
+    let recipe: RecipeDb = diesel::replace_into(recipes::table)
         .values(&recipe)
         .get_result(&mut conn)
         .expect("Error saving new recipe");
 
-    let location = format!("/recipes/{}", recipe.id);
-    Ok(HttpResponse::SeeOther().header(header::LOCATION, location).finish())
+    Redirect::to(uri!("/recipes", list))
 }
 
-pub async fn add_recipe_url_encoded(web::Form(recipe): web::Form<NewRecipe>) -> Result<HttpResponse, Error> {
+// pub async fn add_recipe_url_encoded(web::Form(recipe): web::Form<NewRecipe>) -> Result<HttpResponse, Error> {
+//     let mut conn = establish_connection();
+//     let recipe: Recipe = diesel::insert_into(recipes::table)
+//         .values(&recipe)
+//         .get_result(&mut conn)
+//         .expect("Error saving new recipe");
+
+//     let location = format!("/recipes/{}", recipe.id);
+//     Ok(HttpResponse::SeeOther().header(header::LOCATION, location).finish())
+// }
+
+#[post("/", data = "<recipe>")]
+pub async fn insert<'a>(mut recipe: Form<RecipeForm<'a>>) -> Redirect {
+    let recipe = recipe.into_new_db().await;
+
     let mut conn = establish_connection();
-    let recipe: Recipe = diesel::insert_into(recipes::table)
+    let recipe: RecipeDb = diesel::insert_into(recipes::table)
         .values(&recipe)
         .get_result(&mut conn)
         .expect("Error saving new recipe");
 
-    let location = format!("/recipes/{}", recipe.id);
-    Ok(HttpResponse::SeeOther().header(header::LOCATION, location).finish())
+    Redirect::to(uri!("/recipes", get(recipe.id)))
 }
 
-pub async fn add_recipe_multipart(mut parts: awmp::Parts) -> Result<HttpResponse, Error> {
-    let qs = parts.texts.to_query_string();
-    let mut recipe = web::Query::<NewRecipe>::from_query(&qs).unwrap().into_inner();
+// pub async fn add_recipe_json(web::Json(recipe): web::Json<NewRecipe>) -> Result<HttpResponse, Error> {
+//     let mut conn = establish_connection();
+//     let recipe: Recipe = diesel::insert_into(recipes::table)
+//         .values(&recipe)
+//         // .returning(records::all_columns)
+//         .get_result(&mut conn)
+//         // .execute(conn)
+//         .expect("Error saving new recipe");
 
-    recipe.picture = parts
-        .files
-        .take("picture")
-        .pop()
-        .and_then(|f| f.persist_in("./pictures/").ok())
-        .map(|p| p.to_str().unwrap().to_string());
+//     Ok(HttpResponse::Ok().json(recipe))
+// }
 
-    let mut conn = establish_connection();
-    let recipe: Recipe = diesel::insert_into(recipes::table)
-        .values(&recipe)
-        .get_result(&mut conn)
-        .expect("Error saving new recipe");
-
-    let location = format!("/recipes/{}", recipe.id);
-    Ok(HttpResponse::SeeOther().header(header::LOCATION, location).finish())
-}
-
-pub async fn add_recipe_json(web::Json(recipe): web::Json<NewRecipe>) -> Result<HttpResponse, Error> {
-    let mut conn = establish_connection();
-    let recipe: Recipe = diesel::insert_into(recipes::table)
-        .values(&recipe)
-        // .returning(records::all_columns)
-        .get_result(&mut conn)
-        // .execute(conn)
-        .expect("Error saving new recipe");
-
-    Ok(HttpResponse::Ok().json(recipe))
-}
-
-pub async fn remove_recipe(web::Path(id): web::Path<i32>) -> Result<HttpResponse, Error> {
-    let mut conn = establish_connection();
-    diesel::delete(recipes::table.find(id)).execute(&mut conn).expect("Error deleting recipe");
-    Ok(HttpResponse::Ok().finish())
-}
+// pub async fn remove_recipe(web::Path(id): web::Path<i32>) -> Result<HttpResponse, Error> {
+//     let mut conn = establish_connection();
+//     diesel::delete(recipes::table.find(id)).execute(&mut conn).expect("Error deleting recipe");
+//     Ok(HttpResponse::Ok().finish())
+// }

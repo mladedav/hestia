@@ -9,6 +9,7 @@ table! {
         preparation_minutes -> Nullable<Integer>,
         stars -> Integer,
         class -> Nullable<Text>,
+        tags -> Nullable<Text>,
     }
 }
 
