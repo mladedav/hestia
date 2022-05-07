@@ -4,6 +4,9 @@ Copyright:WowThemes.net,https://www.wowthemes.net
 Version:1.0.1
 License: https://www.wowthemes.net/freebies-license/
 */
+.card {
+	display: inline-block;
+}
 body {
 	padding-top:5rem;
 }

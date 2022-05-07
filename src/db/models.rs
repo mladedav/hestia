@@ -34,6 +34,7 @@ pub struct RecipeForm<'a> {
     pub ingredients: Option<String>,
     pub tips: Option<String>,
     pub picture: Option<TempFile<'a>>,
+    pub old_picture: Option<String>,
     pub preparation_minutes: Option<i32>,
     pub stars: i32,
     pub class: Option<String>,
@@ -59,7 +60,7 @@ impl<'a> RecipeForm<'a> {
 
     pub async fn into_db(&mut self, id: i32) -> RecipeDb {
         log::info!("Picture: {:?}", self.picture);
-        let picture = self.persist_picture().await;
+        let picture = self.persist_picture().await.or(self.old_picture.clone());
 
         RecipeDb {
             id,
@@ -77,8 +78,7 @@ impl<'a> RecipeForm<'a> {
 
     async fn persist_picture(&mut self) -> Option<String> {
         match &mut self.picture {
-            None => None,
-            Some(file) => {
+            Some(file) if file.len() > 0 => {
                 log::info!("Persisting picture");
                 let extension = file.content_type().unwrap().extension().map_or("unknown", |x| x.as_str());
                 let name = format!("{}.{}", Uuid::new_v4(), extension);
@@ -86,6 +86,7 @@ impl<'a> RecipeForm<'a> {
                 log::info!("Picture persistence result: {:?}", res);
                 Some(name)
             }
+            _ => None,
         }
     }
 }

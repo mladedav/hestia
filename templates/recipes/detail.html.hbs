@@ -109,11 +109,14 @@
 
 			<!-- Begin Tags -->
 			<div class="after-post-tags">
-				{{#if class}}
 				<ul class="tags">
+				{{#if class}}
 					<li><a href="#">{{class}}</a></li>
-				</ul>
 				{{/if}}
+				{{#each (split tags)}}
+					<li><a href="#">{{this}}</a></li>
+				{{/each}}
+				</ul>
 			</div>
 			<!-- End Tags -->
 

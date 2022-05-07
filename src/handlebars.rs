@@ -16,6 +16,8 @@ pub fn handlebars() -> Handlebars<'static> {
         }
     });
     handlebars.register_helper("excerpt", Box::new(excerpt));
+    handlebars_helper!(split: |s: Option<String>| s.map(|s| s.split(',').map(|s| s.to_string()).collect::<Vec<_>>()).unwrap_or_default());
+    handlebars.register_helper("split", Box::new(split));
     handlebars.register_templates_directory(".html.hbs", "templates").unwrap();
     handlebars
 }
