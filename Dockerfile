@@ -20,6 +20,8 @@ RUN mkdir /app
 COPY --from=builder /build/target/release/hestia /app/hestia
 COPY static /app/static
 COPY templates /app/templates
+COPY hestia.toml /app/hestia.toml
+COPY rocket.toml /app/rocket.toml
 ENV DATABASE_URL /db/hestia.db
 
 RUN chown -R $APP_USER:$APP_USER /app
