@@ -5,8 +5,8 @@ use diesel::prelude::*;
 use dotenv::dotenv;
 use rocket::form::Form;
 use rocket::response::Redirect;
-use rocket::{get, post, uri, State};
-use rocket_dyn_templates::{Template, context};
+use rocket::{get, post, uri};
+use rocket_dyn_templates::{context, Template};
 
 use crate::db::models::{RecipeDb, RecipeForm};
 use crate::db::schema::recipes;
@@ -39,9 +39,12 @@ pub async fn list() -> Template {
         .load::<RecipeDb>(&mut conn)
         .expect("Error loading recipes");
 
-    Template::render("recipes/list", context! {
-        recipes: &recipes
-    })
+    Template::render(
+        "recipes/list",
+        context! {
+            recipes: &recipes
+        },
+    )
 }
 
 #[get("/add")]

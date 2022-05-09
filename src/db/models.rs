@@ -60,7 +60,10 @@ impl<'a> RecipeForm<'a> {
 
     pub async fn as_db(&mut self, id: i32) -> RecipeDb {
         log::info!("Picture: {:?}", self.picture);
-        let picture = self.persist_picture().await.or_else(|| self.old_picture.clone());
+        let picture = self
+            .persist_picture()
+            .await
+            .or_else(|| self.old_picture.clone());
 
         RecipeDb {
             id,

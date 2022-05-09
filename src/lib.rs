@@ -12,7 +12,7 @@ use rocket::{
         Figment, Profile,
     },
     fs::FileServer,
-    routes, Error, Ignite, Rocket, Build,
+    routes, Build, Rocket,
 };
 use rocket_dyn_templates::Template;
 use serde::Deserialize;
