@@ -1,5 +1,5 @@
-use rocket::{FromForm, fs::TempFile};
-use serde::{Deserialize, Serialize, Deserializer};
+use rocket::{fs::TempFile, FromForm};
+use serde::{Deserialize, Deserializer, Serialize};
 use uuid::Uuid;
 
 use super::schema::*;
@@ -13,7 +13,7 @@ pub struct User {
 
 // #[derive(Debug, Queryable, Identifiable, Serialize, Deserialize)]
 #[derive(Debug, Queryable, Insertable, Identifiable, AsChangeset, Serialize, Deserialize)]
-#[diesel(table_name = super::schema::recipes)]
+#[diesel(table_name = recipes)]
 pub struct RecipeDb {
     pub id: i32,
     pub title: String,
@@ -42,7 +42,7 @@ pub struct RecipeForm<'a> {
 }
 
 impl<'a> RecipeForm<'a> {
-    pub async fn into_new_db(&mut self) -> NewRecipeDb {
+    pub async fn as_new_db(&mut self) -> NewRecipeDb {
         let picture = self.persist_picture().await;
 
         NewRecipeDb {
@@ -58,9 +58,9 @@ impl<'a> RecipeForm<'a> {
         }
     }
 
-    pub async fn into_db(&mut self, id: i32) -> RecipeDb {
+    pub async fn as_db(&mut self, id: i32) -> RecipeDb {
         log::info!("Picture: {:?}", self.picture);
-        let picture = self.persist_picture().await.or(self.old_picture.clone());
+        let picture = self.persist_picture().await.or_else(|| self.old_picture.clone());
 
         RecipeDb {
             id,
@@ -80,7 +80,11 @@ impl<'a> RecipeForm<'a> {
         match &mut self.picture {
             Some(file) if file.len() > 0 => {
                 log::info!("Persisting picture");
-                let extension = file.content_type().unwrap().extension().map_or("unknown", |x| x.as_str());
+                let extension = file
+                    .content_type()
+                    .unwrap()
+                    .extension()
+                    .map_or("unknown", |x| x.as_str());
                 let name = format!("{}.{}", Uuid::new_v4(), extension);
                 let res = file.persist_to(format!("./pictures/{}", name)).await;
                 log::info!("Picture persistence result: {:?}", res);
@@ -101,7 +105,7 @@ pub struct NewRecipeDb {
     pub picture: Option<String>,
     #[serde(with = "serde_with::rust::string_empty_as_none")]
     pub preparation_minutes: Option<i32>,
-    #[serde(deserialize_with="deserialize_or_default")]
+    #[serde(deserialize_with = "deserialize_or_default")]
     pub stars: i32,
     pub class: Option<String>,
     pub tags: Option<String>,

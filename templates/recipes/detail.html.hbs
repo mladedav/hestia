@@ -74,7 +74,7 @@
 			<h3 class="posttitle">Ingredients</h4>
 			<div class="ingredients">
 				<ul>
-					{{#each ingredients}}
+					{{#each (splitnl ingredients)}}
 					<li>
 						{{this}}
 					</li>
@@ -85,7 +85,11 @@
 
 			<h3 class="posttitle">Directions</h4>
 			<div class="article-post">
-				{{content}}
+				{{#if content}}
+					{{content}}
+				{{else}}
+					No directions provided.
+				{{/if}}
 			</div>
 
 			{{#if tips}}
@@ -114,7 +118,7 @@
 					<li><a href="#">{{class}}</a></li>
 				{{/if}}
 				{{#each (split tags)}}
-					<li><a href="#">{{this}}</a></li>
+					<li><a href="#">tag: {{this}}</a></li>
 				{{/each}}
 				</ul>
 			</div>

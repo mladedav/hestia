@@ -9,26 +9,28 @@ edition = "2021"
 
 # diesel = { version = "1.4.8", features = ["sqlite"] }
 diesel = { branch = "master", features = ["sqlite", "returning_clauses_for_sqlite_3_35"], git = "https://github.com/diesel-rs/diesel" }
+# This is a dependency of diesel but we have to depend to enable the bundled feature
+libsqlite3-sys = { version = "0.23.2", features = ["bundled"] }
 dotenv = "0.15.0"
 env_logger = "0.9.0"
-handlebars = { version = "4.2.1", features = ["dir_source"] }
-jsonwebtoken = "8.0.1"
-libsqlite3-sys = { version = "0.23.2", features = ["bundled"] }
+handlebars = { version = "4.2.2", features = ["dir_source"] }
+jsonwebtoken = "8.1.0"
 log = "0.4.17"
-rocket = "0.5.0-rc.1"
-serde = "1.0.136"
-serde_json = "1.0.79"
-serde_with = "1.12.0"
+rocket = "0.5.0-rc.2"
+rocket_dyn_templates = { version = "0.1.0-rc.2", features = ["handlebars"] }
+serde = "1.0.137"
+serde_json = "1.0.81"
+serde_with = "1.13.0"
 strum = "0.24.0"
 strum_macros = "0.24.0"
-tokio = { version = "1.17.0", features = ["macros", "rt-multi-thread", "time"] }
+tokio = { version = "1.18.2", features = ["macros", "rt-multi-thread", "time"] }
 unicode-segmentation = "1.9.0"
 uuid = { version = "1.0.0", features = ["v4"] }
 
 [dev-dependencies]
-async-trait = "0.1.52"
-cucumber = "0.12.0"
-scraper = "0.12.0"
-reqwest = { version = "0.11.9", features = ["multipart"] }
+async-trait = "0.1.53"
+cucumber = "0.13.0"
+scraper = "0.13.0"
+reqwest = { version = "0.11.10", features = ["multipart"] }
 log = "0.4.17"
 env_logger = "0.9.0"

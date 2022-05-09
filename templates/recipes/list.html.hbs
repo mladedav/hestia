@@ -16,11 +16,11 @@
 	</div>
 
 	<div align="center">
-		<button class="btn btn-default filter-button" data-filter="all">All</button>
-		<button class="btn btn-default filter-button" data-filter="savoury">Savoury</button>
-		<button class="btn btn-default filter-button" data-filter="sweet">Sweet</button>
-		<button class="btn btn-default filter-button" data-filter="cocktail">Cocktail</button>
-		<button class="btn btn-default filter-button" data-filter="other">Other</button>
+		<button class="btn btn-secondary filter-button" data-filter="all">All</button>
+		<button class="btn btn-secondary filter-button" data-filter="savoury">Savoury</button>
+		<button class="btn btn-secondary filter-button" data-filter="sweet">Sweet</button>
+		<button class="btn btn-secondary filter-button" data-filter="cocktail">Cocktail</button>
+		<button class="btn btn-secondary filter-button" data-filter="other">Other</button>
 	</div>
 
 	<!-- Begin Featured
@@ -35,10 +35,18 @@
 		{{#each recipes}}
 		<div class="col filter {{class}}">
 			<div class="card h-100 d-flex">
-				<img class="card-img-top" src="{{#if picture}}/pictures/{{picture}}{{else}}/static/logo.png{{/if}}">
-				<div class="card-body">
+				<img class="card-img-top p-2" src="{{#if picture}}/pictures/{{picture}}{{else}}/static/logo.png{{/if}}">
+				<div class="card-body d-flex flex-column">
 					<h5 class="card-title"><a href="recipes/{{id}}">{{title}}</a></h5>
 					<p class="card-text">{{#if content}}{{excerpt content 250}}{{/if}}</p>
+					<div class="rating-holder mt-auto align-self-center">
+						{{#each (range stars)}}
+						<span class="fa fa-star checked"></span>
+						{{/each}}
+						{{#each (range (sub 5 stars))}}
+						<span class="fa fa-star"></span>
+						{{/each}}
+					</div>
 				</div>
 				<div class="card-footer text-muted mt-auto">
 					{{#if preparation_minutes}}{{preparation_minutes}} min{{else}}? min{{/if}}

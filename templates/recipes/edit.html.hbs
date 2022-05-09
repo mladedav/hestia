@@ -98,11 +98,11 @@
                 </div>
                 <div class="form-group">
                     <label for="class">Type</label>
-                    <select type="select" class="form-control" name="class" id="class" value="{{class}}">
-                        <option value="savoury">Savoury</option>
-                        <option value="sweet">Sweet</option>
-                        <option value="cocktail">Cocktail</option>
-                        <option value="other" selected>Other</option>
+                    <select type="select" class="form-control" name="class" id="class">
+                        <option value="savoury" {{#if (eq class "savoury")}}selected{{/if}}>Savoury</option>
+                        <option value="sweet" {{#if (eq class "sweet")}}selected{{/if}}>Sweet</option>
+                        <option value="cocktail" {{#if (eq class "cocktail")}}selected{{/if}}>Cocktail</option>
+                        <option value="other" {{#if (eq class "other")}}selected{{/if}}>Other</option>
                     </select>
                 </div>
                 <div class="form-group">

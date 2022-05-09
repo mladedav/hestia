@@ -1,23 +1,66 @@
-use rocket::{fs::FileServer, Rocket, Ignite, Error, routes};
-
 #[macro_use]
 extern crate diesel;
-extern crate dotenv;
+extern crate rocket;
 
-mod handlebars;
+use std::sync::Arc;
+
+use diesel::{Connection, SqliteConnection};
+use handlers::recipes;
+use rocket::{
+    figment::{
+        providers::{Env, Format, Toml},
+        Figment, Profile,
+    },
+    fs::FileServer,
+    routes, Error, Ignite, Rocket, Build,
+};
+use rocket_dyn_templates::Template;
+use serde::Deserialize;
+use tokio::sync::Mutex;
+
 mod authorization;
-
 mod db;
+mod handlebars;
 mod handlers;
 
-use handlers::recipes;
+#[derive(Debug, Deserialize)]
+struct Config {
+    db_file: String,
+    pictures_dir: String,
+}
 
-pub async fn build() -> Result<Rocket<Ignite>, Error> {
+pub fn build() -> Rocket<Build> {
+    let figment = Figment::new()
+        .merge(Toml::file("hestia.toml").nested())
+        .merge(Env::prefixed("HESTIA_").global())
+        .select(Profile::from_env_or(
+            "HESTIA_ENVIRONMENT",
+            Profile::const_new("local"),
+        ));
+
+    let config: Config = figment.extract().expect("Unable to parse configuration");
+
+    let db_url = &config.db_file;
+    let connection = SqliteConnection::establish(db_url)
+        .unwrap_or_else(|e| panic!("Error connecting to {}: {}", db_url, e));
+
     rocket::build()
-        .manage(handlebars::handlebars())
+        .attach(Template::custom(|engines| {
+            // handlebars::setup(&mut engines.handlebars);
+            handlebars::customize(&mut engines.handlebars);
+        }))
+        .manage(Arc::new(Mutex::new(connection)))
         .mount("/static", FileServer::from("static"))
-        .mount("/pictures", FileServer::from("pictures"))
-        .mount("/recipes", routes![recipes::get, recipes::list, recipes::edit, recipes::update, recipes::add, recipes::insert])
-        .ignite()
-        .await
+        .mount("/pictures", FileServer::from(config.pictures_dir))
+        .mount(
+            "/recipes",
+            routes![
+                recipes::list,
+                recipes::get,
+                recipes::edit,
+                recipes::update,
+                recipes::add,
+                recipes::insert
+            ],
+        )
 }

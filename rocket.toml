@@ -4,10 +4,10 @@ port = 8080
 temp_dir = "./tmp"
 cli_colors = true
 log_level = "normal"
+template_dir = "templates"
 
-[limits]
 # Picture upload limits - we can specify extensions
-file = "16MiB"
+limits.file = "16MiB"
 
 [debug]
 address = "127.0.0.1"

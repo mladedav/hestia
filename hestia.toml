@@ -1,0 +1,7 @@
+[local]
+db_file = "./hestia.db"
+pictures_dir = "./pictures"
+
+[k8s]
+db_file = "/db/hestia.db"
+pictures_dir = "/db"
