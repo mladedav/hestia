@@ -2,6 +2,8 @@
 extern crate diesel;
 extern crate rocket;
 
+use std::{fs::DirBuilder, path::Path};
+
 use handlers::recipes;
 use once_cell::sync::OnceCell;
 use rocket::{
@@ -41,7 +43,7 @@ pub fn build() -> Rocket<Build> {
     CONFIG.set(config).unwrap();
     let config = CONFIG.get().unwrap();
 
-    rocket::build()
+    let rocket = rocket::build()
         .attach(Template::custom(|engines| {
             handlebars::customize(&mut engines.handlebars);
         }))
@@ -57,5 +59,18 @@ pub fn build() -> Rocket<Build> {
                 recipes::add,
                 recipes::insert
             ],
-        )
+        );
+
+    let rocket_config: rocket::Config = rocket.figment().extract().unwrap();
+
+    DirBuilder::new()
+        .recursive(true)
+        .create(Path::new(&config.pictures_dir))
+        .unwrap();
+    DirBuilder::new()
+        .recursive(true)
+        .create(Path::new(rocket_config.temp_dir.original()))
+        .unwrap();
+
+    rocket
 }

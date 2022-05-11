@@ -92,9 +92,7 @@ impl<'a> RecipeForm<'a> {
                 let path = format!("{}/{}", CONFIG.get().unwrap().pictures_dir, name);
                 log::info!("Persisting picture to {}", path);
 
-                let res = file
-                    .move_copy_to(path)
-                    .await;
+                let res = file.move_copy_to(path).await;
                 log::info!("Picture persistence result: {:?}", res);
                 Some(name)
             }

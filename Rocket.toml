@@ -1,7 +1,7 @@
 [default]
 address = "0.0.0.0"
 port = 8080
-temp_dir = "./tmp"
+temp_dir = "/tmp"
 cli_colors = true
 log_level = "normal"
 template_dir = "templates"
@@ -13,3 +13,4 @@ limits.data-form = "16MiB"
 
 [debug]
 address = "127.0.0.1"
+temp_dir = "./tmp"
