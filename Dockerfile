@@ -7,6 +7,7 @@ RUN cargo build --release
 
 FROM debian:bullseye-slim
 ARG APP_USER=appuser
+ENV HESTIA_ENVIRONMENT=k8s
 
 RUN groupadd -r ${APP_USER} && useradd --no-log-init -r -g ${APP_USER} ${APP_USER}
 
@@ -21,8 +22,7 @@ COPY --from=builder /build/target/release/hestia /app/hestia
 COPY static /app/static
 COPY templates /app/templates
 COPY hestia.toml /app/hestia.toml
-COPY rocket.toml /app/rocket.toml
-ENV DATABASE_URL /db/hestia.db
+COPY Rocket.toml /app/Rocket.toml
 
 RUN chown -R $APP_USER:$APP_USER /app
 USER $APP_USER
