@@ -2,10 +2,8 @@
 extern crate diesel;
 extern crate rocket;
 
-use std::sync::Arc;
-
-use diesel::{Connection, SqliteConnection};
 use handlers::recipes;
+use once_cell::sync::OnceCell;
 use rocket::{
     figment::{
         providers::{Env, Format, Toml},
@@ -16,7 +14,6 @@ use rocket::{
 };
 use rocket_dyn_templates::Template;
 use serde::Deserialize;
-use tokio::sync::Mutex;
 
 mod authorization;
 mod db;
@@ -29,6 +26,8 @@ struct Config {
     pictures_dir: String,
 }
 
+static CONFIG: OnceCell<Config> = OnceCell::new();
+
 pub fn build() -> Rocket<Build> {
     let figment = Figment::new()
         .merge(Toml::file("hestia.toml").nested())
@@ -39,19 +38,15 @@ pub fn build() -> Rocket<Build> {
         ));
 
     let config: Config = figment.extract().expect("Unable to parse configuration");
-
-    let db_url = &config.db_file;
-    let connection = SqliteConnection::establish(db_url)
-        .unwrap_or_else(|e| panic!("Error connecting to {}: {}", db_url, e));
+    CONFIG.set(config).unwrap();
+    let config = CONFIG.get().unwrap();
 
     rocket::build()
         .attach(Template::custom(|engines| {
-            // handlebars::setup(&mut engines.handlebars);
             handlebars::customize(&mut engines.handlebars);
         }))
-        .manage(Arc::new(Mutex::new(connection)))
         .mount("/static", FileServer::from("static"))
-        .mount("/pictures", FileServer::from(config.pictures_dir))
+        .mount("/pictures", FileServer::from(config.pictures_dir.clone()))
         .mount(
             "/recipes",
             routes![

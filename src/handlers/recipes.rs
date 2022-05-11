@@ -1,8 +1,6 @@
 use std::collections::BTreeMap;
-use std::env;
 
 use diesel::prelude::*;
-use dotenv::dotenv;
 use rocket::form::Form;
 use rocket::response::Redirect;
 use rocket::{get, post, uri};
@@ -10,13 +8,11 @@ use rocket_dyn_templates::{context, Template};
 
 use crate::db::models::{RecipeDb, RecipeForm};
 use crate::db::schema::recipes;
+use crate::CONFIG;
 
 pub fn establish_connection() -> SqliteConnection {
-    dotenv().ok();
-
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    SqliteConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
+    let db_url = &CONFIG.get().unwrap().db_file;
+    SqliteConnection::establish(db_url).unwrap_or_else(|_| panic!("Error connecting to {}", db_url))
 }
 
 #[get("/<id>")]

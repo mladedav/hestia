@@ -3,6 +3,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use uuid::Uuid;
 
 use super::schema::*;
+use crate::CONFIG;
 
 #[derive(Debug, Queryable, Insertable, Identifiable, AsChangeset)]
 pub struct User {
@@ -89,7 +90,9 @@ impl<'a> RecipeForm<'a> {
                     .extension()
                     .map_or("unknown", |x| x.as_str());
                 let name = format!("{}.{}", Uuid::new_v4(), extension);
-                let res = file.persist_to(format!("./pictures/{}", name)).await;
+                let res = file
+                    .persist_to(format!("{}/{}", CONFIG.get().unwrap().pictures_dir, name))
+                    .await;
                 log::info!("Picture persistence result: {:?}", res);
                 Some(name)
             }
