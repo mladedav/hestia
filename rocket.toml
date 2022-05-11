@@ -8,6 +8,8 @@ template_dir = "templates"
 
 # Picture upload limits - we can specify extensions
 limits.file = "16MiB"
+# We also need to make data forms larger so that the picture can be sent
+limits.data-form = "16MiB"
 
 [debug]
 address = "127.0.0.1"
