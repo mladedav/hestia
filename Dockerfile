@@ -8,6 +8,7 @@ RUN cargo build --release
 FROM debian:bullseye-slim
 ARG APP_USER=appuser
 ENV HESTIA_ENVIRONMENT=k8s
+ENV DATABASE_URL /db/hestia.db
 
 RUN groupadd -r ${APP_USER} && useradd --no-log-init -r -g ${APP_USER} ${APP_USER}
 
