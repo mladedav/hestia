@@ -83,15 +83,17 @@ impl<'a> RecipeForm<'a> {
     async fn persist_picture(&mut self) -> Option<String> {
         match &mut self.picture {
             Some(file) if file.len() > 0 => {
-                log::info!("Persisting picture");
                 let extension = file
                     .content_type()
                     .unwrap()
                     .extension()
                     .map_or("unknown", |x| x.as_str());
                 let name = format!("{}.{}", Uuid::new_v4(), extension);
+                let path = format!("{}/{}", CONFIG.get().unwrap().pictures_dir, name);
+                log::info!("Persisting picture to {}", path);
+
                 let res = file
-                    .persist_to(format!("{}/{}", CONFIG.get().unwrap().pictures_dir, name))
+                    .move_copy_to(path)
                     .await;
                 log::info!("Picture persistence result: {:?}", res);
                 Some(name)
