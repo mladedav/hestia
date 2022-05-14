@@ -12,7 +12,6 @@ pub struct User {
     pub password_hash: Vec<u8>,
 }
 
-// #[derive(Debug, Queryable, Identifiable, Serialize, Deserialize)]
 #[derive(Debug, Queryable, Insertable, Identifiable, AsChangeset, Serialize, Deserialize)]
 #[diesel(table_name = recipes)]
 pub struct RecipeDb {

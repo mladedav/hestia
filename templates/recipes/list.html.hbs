@@ -16,11 +16,16 @@
 	</div>
 
 	<div align="center">
-		<button class="btn btn-secondary filter-button" data-filter="all">All</button>
-		<button class="btn btn-secondary filter-button" data-filter="savoury">Savoury</button>
-		<button class="btn btn-secondary filter-button" data-filter="sweet">Sweet</button>
-		<button class="btn btn-secondary filter-button" data-filter="cocktail">Cocktail</button>
-		<button class="btn btn-secondary filter-button" data-filter="other">Other</button>
+		<button class="btn btn-dark class-filter-btn" class-filter="all">All</button>
+		<button class="btn btn-light class-filter-btn" class-filter="savoury">Savoury</button>
+		<button class="btn btn-light class-filter-btn" class-filter="sweet">Sweet</button>
+		<button class="btn btn-light class-filter-btn" class-filter="cocktail">Cocktail</button>
+		<button class="btn btn-light class-filter-btn" class-filter="other">Other</button>
+	</div>
+	<div align="center">
+		<div id="tag-filtered">
+		</div>
+		<input type="text" id="tag-filter-btn">
 	</div>
 
 	<!-- Begin Featured
@@ -33,7 +38,7 @@
 
 		<!-- begin post -->
 		{{#each recipes}}
-		<div class="col filter {{class}}">
+		<div class="col">
 			<div class="card h-100 d-flex">
 				<img class="card-img-top p-2" src="{{#if picture}}/pictures/{{picture}}{{else}}/static/logo.png{{/if}}">
 				<div class="card-body d-flex flex-column">
@@ -51,9 +56,9 @@
 				<div class="card-footer text-muted mt-auto">
 					{{#if preparation_minutes}}{{preparation_minutes}} min{{else}}? min{{/if}}
 					<div class="tags">
-						<span class="badge bg-primary">{{class}}</span>
+						<span class="badge bg-primary" classTag="{{class}}">{{class}}</span>
 						{{#each (split tags)}}
-							<span class="badge bg-secondary">{{this}}</span>
+							<span class="badge bg-secondary" tag="{{this}}">{{this}}</span>
 						{{/each}}
 					</div>
 				</div>
@@ -277,29 +282,56 @@
 <script src="assets/js/ie10-viewport-bug-workaround.js"></script>
 -->
 <script src="/static/jquery.min.js"></script>
+
 <script>
-$(document).ready(function(){
-	$(".filter-button").click(function(){
-		var value = $(this).attr('data-filter');
-		
-		if(value == "all")
-		{
-			$('.filter').show('1000');
+	function filter() {
+		let shown = $(".col");
+
+		let classFilter = $(".class-filter-btn.btn-dark").attr('class-filter');
+		if (classFilter != "all") {
+			shown = $(".col").filter(":has(.tags:contains(" + classFilter + "))");
 		}
-		else
-		{
-			$(".filter").not('.'+value).hide('3000');
-			$('.filter').filter('.'+value).show('3000');
-			
+
+		let tags = $(".tag-filter");
+		if (tags != null && tags.length > 0) {
+			let filtered = $();
+			tags.each(function() {
+				let tagFilter = $(this).attr('tag-filter');
+				filtered = filtered.add(shown.filter(":has(.badge[tag='" + tagFilter + "'])"));
+			});
+			shown = filtered;
 		}
+
+		let hidden = $(".col").not(shown);
+		hidden.removeClass('active').hide(750);
+		shown.addClass('active').show(750);
+	}
+
+	$(document).ready(function(){
+		$(".class-filter-btn").click(function(){
+			$(".class-filter-btn").removeClass('btn-dark').addClass('btn-light');
+			$(this).removeClass('btn-light').addClass('btn-dark');
+
+			filter();
+		});
 	});
 
-	if ($(".filter-button").removeClass("active")) {
-	$(this).removeClass("active");
-	}
-	$(this).addClass("active");
+	$(document).ready(function(){
+		$("#tag-filter-btn").on('keypress', function(e) {
+			if (e.which === 13) {
+				let value = $(this).val();
+				$(this).val('');
+				$("#tag-filtered").append('<button class="btn btn-dark tag-filter" tag-filter="' + value + '">' + value + '</button>');
 
-});
+				filter();
+			}
+		});
+	});
+
+	$(document).on('click', '.tag-filter', function() {
+		$(this).remove();
+		filter();
+	});
 </script>
 
 </body>
