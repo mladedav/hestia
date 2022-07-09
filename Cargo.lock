@@ -525,18 +525,19 @@ dependencies = [
 
 [[package]]
 name = "diesel"
-version = "2.0.0"
-source = "git+https://github.com/diesel-rs/diesel?branch=master#dd5f41dc93c574077646185393cd064c7103000b"
+version = "2.0.0-rc.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e531d0abf8147036383c88ce3785d9cda6fe1b8b1183021ffa01cf49c5819d24"
 dependencies = [
  "diesel_derives",
- "itoa 0.4.8",
  "libsqlite3-sys",
 ]
 
 [[package]]
 name = "diesel_derives"
-version = "2.0.0"
-source = "git+https://github.com/diesel-rs/diesel?branch=master#dd5f41dc93c574077646185393cd064c7103000b"
+version = "2.0.0-rc.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "212ba0cdc611523c37f26c7b3b4aedb4af7cbfe9239c4e7736a8a7c82284d77b"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
