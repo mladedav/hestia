@@ -1,4 +1,4 @@
-{{> base title=recipe.title}}
+{{> base title=(concat "Hestia - " recipe.title) user=user}}
 
 <!-- Begin Article
 ================================================== -->
@@ -66,49 +66,49 @@
 			</div>
 
 			<!-- Begin Form -->
-            <form action="/recipes/{{id}}" method="post" enctype="multipart/form-data">
-				<input type="hidden" name="id" id="id" value="{{id}}">
+            <form action="/recipes/{{recipe.id}}" method="post" enctype="multipart/form-data">
+				<input type="hidden" name="id" id="id" value="{{recipe.id}}">
                 <div class="form-group">
-                    <input type="text" class="form-control form-control-lg" name="title" id="title" value="{{title}}">
+                    <input type="text" class="form-control form-control-lg" name="title" id="title" value="{{recipe.title}}">
                     <small id="catchphrase" class="form-text text-muted">Let's get cooking!</small>
                 </div>
                 <div class="form-group">
                     <label for="ingredients">Ingredients</label>
-                    <textarea class="form-control" name="ingredients" id="ingredients" rows="5">{{ingredients}}</textarea>
+                    <textarea class="form-control" name="ingredients" id="ingredients" rows="5">{{recipe.ingredients}}</textarea>
                 </div>
                 <div class="form-group">
                     <label for="content">Directions</label>
-                    <textarea class="form-control" name="content" id="content" rows="10">{{content}}</textarea>
+                    <textarea class="form-control" name="content" id="content" rows="10">{{recipe.content}}</textarea>
                 </div>
                 <div class="form-group">
                     <label for="content">Tips</label>
-                    <textarea class="form-control" name="tips" id="tips" rows="5">{{tips}}</textarea>
+                    <textarea class="form-control" name="tips" id="tips" rows="5">{{recipe.tips}}</textarea>
                 </div>
                 <div class="form-group">
                     <label for="preparation_minutes">Preparation time in minutes</label>
-                    <input type="number" class="form-control" name="preparation_minutes" id="preparation_minutes" min="0" value="{{preparation_minutes}}">
+                    <input type="number" class="form-control" name="preparation_minutes" id="preparation_minutes" min="0" value="{{recipe.preparation_minutes}}">
                 </div>
                 <div class="form-group">
                     <label for="stars">Rating</label>
-                    <input type="number" class="form-control" name="stars" id="stars" min="0" max="5" value="{{stars}}">
+                    <input type="number" class="form-control" name="stars" id="stars" min="0" max="5" value="{{recipe.stars}}">
                 </div>
                 <div class="form-group">
                     <label for="tags">Tags</label>
-                    <input type="text" class="form-control" name="tags" id="tags" value="{{tags}}">
+                    <input type="text" class="form-control" name="tags" id="tags" value="{{recipe.tags}}">
                 </div>
                 <div class="form-group">
                     <label for="class">Type</label>
                     <select type="select" class="form-control" name="class" id="class">
-                        <option value="savoury" {{#if (eq class "savoury")}}selected{{/if}}>Savoury</option>
-                        <option value="sweet" {{#if (eq class "sweet")}}selected{{/if}}>Sweet</option>
-                        <option value="cocktail" {{#if (eq class "cocktail")}}selected{{/if}}>Cocktail</option>
-                        <option value="other" {{#if (eq class "other")}}selected{{/if}}>Other</option>
+                        <option value="savoury" {{#if (eq recipe.class "savoury")}}selected{{/if}}>Savoury</option>
+                        <option value="sweet" {{#if (eq recipe.class "sweet")}}selected{{/if}}>Sweet</option>
+                        <option value="cocktail" {{#if (eq recipe.class "cocktail")}}selected{{/if}}>Cocktail</option>
+                        <option value="other" {{#if (eq recipe.class "other")}}selected{{/if}}>Other</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="picture">Picture</label>
                     <input type="file" class="form-control-file" name="picture" id="picture">
-					<input type="hidden" name="old_picture" id="old_picture" value="{{picture}}">
+					<input type="hidden" name="old_picture" id="old_picture" value="{{recipe.picture}}">
                 </div>
                 <button type="submit" class="btn btn-primary">Submit</button>
             </form>

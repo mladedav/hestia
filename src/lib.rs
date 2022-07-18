@@ -4,7 +4,6 @@ extern crate rocket;
 
 use std::{fs::DirBuilder, path::Path};
 
-use handlers::recipes;
 use once_cell::sync::OnceCell;
 use rocket::{
     figment::{
@@ -17,7 +16,9 @@ use rocket::{
 use rocket_dyn_templates::Template;
 use serde::Deserialize;
 
-mod authorization;
+use handlers::auth;
+use handlers::recipes;
+
 mod db;
 mod handlebars;
 mod handlers;
@@ -53,13 +54,17 @@ pub fn build() -> Rocket<Build> {
             "/recipes",
             routes![
                 recipes::list,
+                recipes::list_paged,
                 recipes::get,
                 recipes::edit,
                 recipes::update,
                 recipes::add,
+                recipes::add_redirect,
                 recipes::insert
             ],
-        );
+        )
+        .mount("/", routes![auth::callback, auth::logout,])
+        .mount("/", routes![handlers::redirect_recipes,]);
 
     let rocket_config: rocket::Config = rocket.figment().extract().unwrap();
 

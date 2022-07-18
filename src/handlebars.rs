@@ -2,6 +2,8 @@ use handlebars::{handlebars_helper, Handlebars};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn customize(handlebars: &mut Handlebars) {
+    handlebars_helper!(concat: |x: String, y: String| x + &y);
+    handlebars.register_helper("concat", Box::new(concat));
     handlebars_helper!(range: |x: u64| (0..x).collect::<Vec<u64>>());
     handlebars.register_helper("range", Box::new(range));
     handlebars_helper!(sub: |x: u64, y: u64| x - y);

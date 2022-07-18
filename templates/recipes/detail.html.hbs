@@ -1,4 +1,4 @@
-{{> base title=title}}
+{{> base title=(concat "Hestia - " recipe.title) user=user}}
 
 <!-- Begin Article
 ================================================== -->
@@ -66,15 +66,15 @@
 			</div>
 
 			<!-- Begin Featured Image -->
-			<img class="featured-image img-fluid" src="{{#if picture}}/pictures/{{picture}}{{else}}/static/logo.png{{/if}}" alt="">
+			<img class="featured-image img-fluid" src="{{#if recipe.picture}}/pictures/{{recipe.picture}}{{else}}/static/logo.png{{/if}}" alt="">
 			<!-- End Featured Image -->
 
 			<!-- Begin Post Content -->
-			{{#if ingredients}}
+			{{#if recipe.ingredients}}
 			<h3 class="posttitle">Ingredients</h4>
 			<div class="ingredients">
 				<ul>
-					{{#each (splitnl ingredients)}}
+					{{#each (splitnl recipe.ingredients)}}
 					<li>
 						{{this}}
 					</li>
@@ -85,27 +85,27 @@
 
 			<h3 class="posttitle">Directions</h4>
 			<div class="article-post">
-				{{#if content}}
-					{{content}}
+				{{#if recipe.content}}
+					{{recipe.content}}
 				{{else}}
 					No directions provided.
 				{{/if}}
 			</div>
 
-			{{#if tips}}
+			{{#if recipe.tips}}
 			<h3 class="posttitle">Tips &amp; Tricks</h4>
 			<div class="article-post">
-				{{tips}}
+				{{recipe.tips}}
 			</div>
 			{{/if}}
 			<!-- End Post Content -->
 
 			<!-- Begin Rating -->
 			<div class="rating-holder">
-				{{#each (range stars)}}
+				{{#each (range recipe.stars)}}
 				<span class="fa fa-star checked"></span>
 				{{/each}}
-				{{#each (range (sub 5 stars))}}
+				{{#each (range (sub 5 recipe.stars))}}
 				<span class="fa fa-star"></span>
 				{{/each}}
 			</div>
@@ -115,9 +115,9 @@
 			<div class="after-post-tags">
 				<ul class="tags">
 				{{#if class}}
-					<li><a href="#">{{class}}</a></li>
+					<li><a href="#">{{recipe.class}}</a></li>
 				{{/if}}
-				{{#each (split tags)}}
+				{{#each (split recipe.tags)}}
 					<li><a href="#">{{this}}</a></li>
 				{{/each}}
 				</ul>
@@ -128,7 +128,7 @@
 		<!-- End Post -->
 
 		<div align="center">
-			<a href="edit/{{id}}" class="btn btn-primary">Edit</a>
+			<a href="edit/{{recipe.id}}" class="btn btn-primary">Edit</a>
 		</div>
 
 	</div>

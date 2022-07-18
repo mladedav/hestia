@@ -8,6 +8,7 @@ use rocket_dyn_templates::{context, Template};
 
 use crate::db::models::{RecipeDb, RecipeForm};
 use crate::db::schema::recipes;
+use crate::handlers::auth::User;
 use crate::CONFIG;
 
 pub fn establish_connection() -> SqliteConnection {
@@ -16,7 +17,7 @@ pub fn establish_connection() -> SqliteConnection {
 }
 
 #[get("/<id>")]
-pub async fn get(id: i32) -> Option<Template> {
+pub async fn get(id: i32, user: Option<User>) -> Option<Template> {
     let mut conn = establish_connection();
     let recipe = match recipes::table.find(id).first::<RecipeDb>(&mut conn) {
         Ok(recipe) => recipe,
@@ -24,32 +25,67 @@ pub async fn get(id: i32) -> Option<Template> {
         Err(e) => panic!("Unexpected error: {}", e),
     };
 
-    Some(Template::render("recipes/detail", &recipe))
+    Some(Template::render(
+        "recipes/detail",
+        context! {
+            recipe: &recipe,
+            user: &user,
+        },
+    ))
 }
 
 #[get("/")]
-pub async fn list() -> Template {
+pub async fn list(user: Option<User>) -> Template {
+    list_paged(None, None, user).await
+}
+
+#[get("/?<page>&<count>")]
+pub async fn list_paged(page: Option<i64>, count: Option<i64>, user: Option<User>) -> Template {
+    let page_count = match count {
+        Some(val) if val > 0 && val <= 96 => val,
+        _ => 48,
+    };
+    let page = page.unwrap_or(0);
     let mut conn = establish_connection();
+    let count: i64 = recipes::table
+        .count()
+        .get_result(&mut conn)
+        .expect("Error getting count of recipes");
+
     let recipes = recipes::table
-        .limit(10)
+        .offset(page * page_count)
+        .limit(page_count)
         .load::<RecipeDb>(&mut conn)
         .expect("Error loading recipes");
 
     Template::render(
         "recipes/list",
         context! {
-            recipes: &recipes
+            recipes: &recipes,
+            count: count,
+            user: &user,
         },
     )
 }
 
 #[get("/add")]
-pub async fn add() -> Template {
-    Template::render("recipes/add", &())
+pub async fn add(user: User) -> Template {
+    Template::render(
+        "recipes/add",
+        context! {
+            user: &user
+        },
+    )
+}
+
+#[get("/add", rank = 6)]
+pub async fn add_redirect() -> Redirect {
+    Redirect::to(uri!("/recipes", list))
 }
 
 #[get("/edit/<id>")]
-pub async fn edit(id: i32) -> Option<Template> {
+pub async fn edit(id: i32, user: User) -> Option<Template> {
+    // TODO check that the user can change this
     let mut conn = establish_connection();
     let recipe = match recipes::table.find(id).first::<RecipeDb>(&mut conn) {
         Ok(recipe) => recipe,
@@ -63,11 +99,18 @@ pub async fn edit(id: i32) -> Option<Template> {
         data.insert(key.as_str(), value.to_owned());
     }
 
-    Some(Template::render("recipes/edit", &data))
+    Some(Template::render(
+        "recipes/edit",
+        context! {
+            recipe: &data,
+            user: &user,
+        },
+    ))
 }
 
 #[post("/<id>", data = "<recipe>")]
-pub async fn update(id: i32, mut recipe: Form<RecipeForm<'_>>) -> Redirect {
+pub async fn update(id: i32, mut recipe: Form<RecipeForm<'_>>, _user: User) -> Redirect {
+    // TODO check that the user is the same
     let recipe = recipe.as_db(id).await;
 
     let mut conn = establish_connection();
@@ -80,7 +123,8 @@ pub async fn update(id: i32, mut recipe: Form<RecipeForm<'_>>) -> Redirect {
 }
 
 #[post("/", data = "<recipe>")]
-pub async fn insert(mut recipe: Form<RecipeForm<'_>>) -> Redirect {
+pub async fn insert(mut recipe: Form<RecipeForm<'_>>, _user: User) -> Redirect {
+    // TODO add user to the recipe
     let recipe = recipe.as_new_db().await;
 
     let mut conn = establish_connection();

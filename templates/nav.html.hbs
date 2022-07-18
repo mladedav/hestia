@@ -8,6 +8,23 @@
 	<img src="/static/logo.png" alt="logo">
 	</a>
 	<!-- End Logo -->
+	<!-- Begin Login -->
+	<div class="navbar-brand">
+	{{#if user}}
+		{{user.email}}
+		<img class="rounded-circle img-fluid mh-25" src="{{user.picture}}" referrerpolicy="no-referrer" />
+		<a href="/logout">
+			<button class="btn btn-light" type="button">Logout</button>
+		</a>
+	{{else}}
+		<img class="rounded-circle img-fluid h-100" src="/static/avatar.png" />
+		<a href="https://dev-q1c7r97i.eu.auth0.com/authorize?response_type=code&client_id=CRviuZCro0wWnbyqZR6paB7Pzr1eKXLc&connection=google-oauth2&redirect_uri=http://localhost:8080/callback&state=STATE&scope=openid%20profile%20email">
+			<button class="btn btn-light" type="button">Login</button>
+		</a>
+	{{/if}}
+	</div>
+	<!-- End Login -->
+
 	<div class="collapse navbar-collapse" id="navbarsExampleDefault">
 		<!-- Begin Menu -->
 		<ul class="navbar-nav ml-auto">

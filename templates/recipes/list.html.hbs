@@ -1,4 +1,4 @@
-{{> base title="Hestia" }}
+{{> base title="Hestia" user=user }}
 
 <!-- Begin Site Title
 ================================================== -->
@@ -11,9 +11,11 @@
 	</div>
 <!-- End Site Title
 ================================================== -->
+	{{#if user}}
 	<div align="center">
 		<a href="recipes/add" class="btn btn-primary">Co žerem</a>
 	</div>
+	{{/if}}
 
 	<div align="center">
 		<button class="btn btn-dark class-filter-btn" class-filter="all">All</button>
